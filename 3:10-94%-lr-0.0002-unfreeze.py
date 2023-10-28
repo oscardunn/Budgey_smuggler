@@ -306,5 +306,4 @@ print(f"Total Correct Predictions: {correct_predictions} out of {total_predictio
 # model depth - add layers@!
 
 # MUST SAVE model to prevent retraining - learn how to save then recall!
-# Tensor board can monitor progress - learn
 
