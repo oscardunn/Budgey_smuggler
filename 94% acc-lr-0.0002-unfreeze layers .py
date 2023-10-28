@@ -146,9 +146,8 @@ model_tuned = Model(inputs=base_model.input, outputs=predictions)
 for layer in base_model.layers:
     layer.trainable = False
 
-# best results with lr = 0.0001
 model_tuned.compile(
-    optimizer=Adam(learning_rate=0.0001), 
+    optimizer=Adam(learning_rate=0.001), 
     loss='categorical_crossentropy', 
     metrics=['accuracy']
 )
@@ -187,7 +186,7 @@ for layer in model_tuned.layers[-10:]:
 model_tuned.compile(optimizer=Adam(learning_rate=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
 model_tuned.fit(
    train_generator, 
-   epochs=15, 
+   epochs=10, 
    validation_data=val_generator,
     callbacks=[early_stopping, tensorboard_callback, reduce_lr, model_checkpoint]
     )
