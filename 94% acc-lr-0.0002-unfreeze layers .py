@@ -208,7 +208,7 @@ print("\n")
 # Save the trained model - Might want to include for retraining abd better control
 model_tuned.save('saved_model/my_bird_model')
 
-load the trained model for predictions
+#load the trained model for predictions
 loaded_model = load_model(checkpoint_filepath)
 
 
