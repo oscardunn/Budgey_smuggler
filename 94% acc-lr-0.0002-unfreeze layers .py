@@ -131,11 +131,7 @@ x = Dense(1024, activation='relu')(x)
 # Add a dropout layer with a dropout rate of 0.5. This helps in preventing overfitting.
 x = Dropout(0.5)(x)
 # Add the final dense layer with 525 units (presumably for 525 classes) with a softmax activation.
-# This gives the class probabilities as the output.
-
-# Second Dense Layer
-x = Dense(512, activation='relu')(x) 
-x = Dropout(0.5)(x)               
+# This gives the class probabilities as the output.    
 
 # Output layer
 predictions = Dense(525, activation='softmax')(x)
@@ -147,12 +143,12 @@ for layer in base_model.layers:
     layer.trainable = False
 
 model_tuned.compile(
-    optimizer=Adam(learning_rate=0.001), 
+    optimizer=Adam(learning_rate=0.0002), 
     loss='categorical_crossentropy', 
     metrics=['accuracy']
 )
 
-early_stopping = EarlyStopping(monitor='val_loss', patience=4, verbose=1, restore_best_weights=True)
+early_stopping = EarlyStopping(monitor='val_loss', patience=3, verbose=1, restore_best_weights=True)
 
 # Define the TensorBoard callback and specify the log directory
 log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
