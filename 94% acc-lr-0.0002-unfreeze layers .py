@@ -108,52 +108,12 @@ def preprocess_image(img_path):
     x = preprocess_input(x)
     return x
 
-# Initialize MobileNet architechture model
-MobileNet_model = MobileNet(weights='imagenet')
-
-
 # List all files in the directory
 image_files = [f for f in os.listdir(user_test_folder) if os.path.isfile(os.path.join(user_test_folder, f))]
 
-correct_predictions = 0
-total_predictions = 0
-
-for img_name in image_files:
-    img_path = os.path.join(user_test_folder, img_name)
-    
-    total_predictions += 1
-
-    try:
-
-        x = preprocess_image(img_path)
-
-        preds = MobileNet_model.predict(x)
-
-        # Decode the prediction to get human-readable labels
-        predictions = decode_predictions(preds, top=3)[0]
-        extracted_data = [(tup[1], tup[2]) for tup in predictions]
-        
-        print(f"Predictions for image: {img_name}")
-        for row in extracted_data:
-            print('ImageNet Predicted:', row[0], '- Probability:', str(row[1]))
-        
-        if is_name_similar_predictions(img_name, extracted_data):
-            correct_predictions += 1
-            print("The image name is similar to the predictions!")
-        else:
-            print("The image name is not similar to the predictions.")
-            
-        print("\n")
-        
-    except Exception as e:
-        print(f"Error processing image {img_name}: {e}")
-
-print(f"Total Correct Predictions: {correct_predictions} out of {total_predictions - 1} total.")
-
-    
-
 keras.backend.clear_session()
 
+# Initialise MobileNet model with custom top layers
 # Fine-tuning model, custom top layers
 base_model = MobileNet(
     weights='imagenet', 
