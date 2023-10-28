@@ -9,15 +9,6 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-#from sklearn.model_selection import train_test_split
-#from sklearn.preprocessing import LabelEncoder
-#from sklearn.metrics import classification_report, confusion_matrixch
-
-# from tensorflow.keras.models import Sequential, Model
-# from tensorflow.keras.layers import Conv2D, MaxPooling2D, GlobalAveragePooling2D, Layer, Flatten
-# from tensorflow.keras.layers import Activation, Dropout, Flatten, Dense
-
-
 import tensorflow as tf
 tf .config.list_physical_devices("GPU")
 from tensorflow import keras
@@ -30,8 +21,6 @@ from keras.optimizers import Adam
 from keras.callbacks import EarlyStopping, TensorBoard, ReduceLROnPlateau, ModelCheckpoint
 
 from keras.models import load_model
-
-#PyTorch??
 
 # Importing deep learning architectures from Keras' applications module.
 from keras.applications import MobileNet 
@@ -120,7 +109,7 @@ def preprocess_image(img_path):
     return x
 
 # Initialize MobileNet architechture model
-vgg16_model = MobileNet(weights='imagenet')
+MobileNet_model = MobileNet(weights='imagenet')
 
 
 # List all files in the directory
@@ -138,7 +127,7 @@ for img_name in image_files:
 
         x = preprocess_image(img_path)
 
-        preds = vgg16_model.predict(x)
+        preds = MobileNet_model.predict(x)
 
         # Decode the prediction to get human-readable labels
         predictions = decode_predictions(preds, top=3)[0]
@@ -160,150 +149,3 @@ for img_name in image_files:
         print(f"Error processing image {img_name}: {e}")
 
 print(f"Total Correct Predictions: {correct_predictions} out of {total_predictions - 1} total.")
-
-    
-
-keras.backend.clear_session()
-
-# Fine-tuning model, custom top layers
-base_model = MobileNet(
-    weights='imagenet', 
-    include_top=False, 
-    input_shape=(224, 224, 3)
-    )
-
-x = base_model.output
-x = GlobalAveragePooling2D()(x)
-x = Dense(1024, activation='relu')(x)
-x = Dropout(0.5)(x)
-predictions = Dense(525, activation='softmax')(x)
-model_tuned = Model(inputs=base_model.input, outputs=predictions)
-
-for layer in base_model.layers:
-    layer.trainable = False
-
-
-# best results with lr = 0.0001
-model_tuned.compile(
-    optimizer=Adam(learning_rate=0.0003), 
-    loss='categorical_crossentropy', 
-    metrics=['accuracy']
-)
-
-early_stopping = EarlyStopping(monitor='val_loss', patience=4, verbose=1, restore_best_weights=True)
-
-# Define the TensorBoard callback and specify the log directory
-log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
-
-reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.000001)
-
-checkpoint_filepath = 'saved_model/my_bird_model'
-
-model_checkpoint = ModelCheckpoint(
-   filepath=checkpoint_filepath,
-   monitor='val_loss',        # What metric to monitor
-   save_best_only=True,       # Only save the model that has the best 'val_loss'
-   mode='min',                # 'min' means the routine will save the model when 'val_loss' is minimized
-   verbose=1                  # Verbosity mode, 1 means it will print logs
-)
-
-model_tuned.fit(
-    train_generator, 
-    epochs=15, 
-    validation_data= val_generator,
-    callbacks=[early_stopping, tensorboard_callback, reduce_lr, model_checkpoint]  # Multiple callbacks
-    )
-
-
-# Unfreeze the top 15 layers
-for layer in model_tuned.layers[-15:]:
-   layer.trainable = True
-
-
-model_tuned.compile(optimizer=Adam(learning_rate=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
-model_tuned.fit(
-   train_generator, 
-   epochs=25, 
-   validation_data=val_generator,
-    callbacks=[early_stopping, tensorboard_callback, reduce_lr, model_checkpoint]
-    )
-
-
-
-# Using validation data
-val_loss, val_accuracy = model_tuned.evaluate(val_generator)
-# test data 
-test_loss, test_accuracy = model_tuned.evaluate(test_generator)
-
-print("\n")
-print(f"Validation Loss: {val_loss}")
-print(f"Validation Accuracy: {val_accuracy}")
-print("\n")
-print(f"Test Loss: {test_loss}")
-print(f"Test Accuracy: {test_accuracy}")
-print("\n")
-
-
-
-# Save the trained model - Might want to include for retraining abd better control
-# model.save('saved_model/my_bird_model')
-
-# load the trained model for predictions
-# loaded_model = load_model(checkpoint_filepath)
-
-
-is_name_similar_predictions
-
-preprocess_image(img_path)
-
-# List all files in the directory
-image_files = [f for f in os.listdir(user_test_folder) if os.path.isfile(os.path.join(user_test_folder, f))]
-
-correct_predictions = 0
-total_predictions = 0
-
-for img_name in image_files:
-    img_path = os.path.join(user_test_folder, img_name)
-    
-    total_predictions += 1
-
-    try:
-
-        x = preprocess_image(img_path)
-
-        preds = vgg16_model.predict(x)
-
-        # Decode the prediction to get human-readable labels
-        predictions = decode_predictions(preds, top=3)[0]
-        extracted_data = [(tup[1], tup[2]) for tup in predictions]
-        
-        print(f"Predictions for image: {img_name}")
-        for row in extracted_data:
-            print('ImageNet Predicted:', row[0], '- Probability:', str(row[1]))
-        
-        if is_name_similar_predictions(img_name, extracted_data):
-            correct_predictions += 1
-            print("The image name is similar to the predictions!")
-        else:
-            print("The image name is not similar to the predictions.")
-            
-        print("\n")
-        
-    except Exception as e:
-        print(f"Error processing image {img_name}: {e}")
-
-print(f"Total Correct Predictions: {correct_predictions} out of {total_predictions - 1} total.")
-
-
-# regularisation - L2: BatchNormalisation
-# alternative models such as ResNet and VGG and EfficicentNet
-# Data visualisation
-# other eval matrics?
-# erroy analysis - types of images that are failing
-# ensemble models?
-# hyperparameter tuning? - Keras tuner? or optuna
-# model depth - add layers@!
-
-# MUST SAVE model to prevent retraining - learn how to save then recall!
-
