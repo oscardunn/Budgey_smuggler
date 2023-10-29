@@ -221,7 +221,7 @@ for img_name in image_files:
         print(f"Predictions for image: {img_name}")
         print(f"Model Predicted:", predicted_label, '- Probability:', np.max(preds[0]))
         
-        if is_name_similar_predictions(img_name, [(predicted_label, np.max(preds[0]))]):
+        if is_name_similar_predictions(img_name, predicted_label):
             correct_predictions += 1
             print("The image name is similar to the predictions!")
         else:
