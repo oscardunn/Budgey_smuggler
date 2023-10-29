@@ -101,6 +101,7 @@ def is_name_similar_predictions(img_name, predictions):
             return True
     return False
 
+# Function to reformat input image
 def preprocess_image(img_path):
     img = image.load_img(img_path, target_size=(224, 224))
     x = image.img_to_array(img)
@@ -143,7 +144,7 @@ for layer in base_model.layers:
     layer.trainable = False
 
 model_tuned.compile(
-    optimizer=Adam(learning_rate=0.0002), 
+    optimizer=Adam(learning_rate=0.001), 
     loss='categorical_crossentropy', 
     metrics=['accuracy']
 )
@@ -152,11 +153,11 @@ early_stopping = EarlyStopping(monitor='val_loss', patience=3, verbose=1, restor
 
 # Define the TensorBoard callback and specify the log directory
 log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
+tensorboard = TensorBoard(log_dir=log_dir, histogram_freq=1)
 
-reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.000001)
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.00001)
 
-checkpoint_filepath = 'saved_model/my_bird_model'
+checkpoint_filepath = 'saved_model/model_1'
 
 model_checkpoint = ModelCheckpoint(
    filepath=checkpoint_filepath,
@@ -168,9 +169,9 @@ model_checkpoint = ModelCheckpoint(
 
 model_tuned.fit(
     train_generator, 
-    epochs=15, 
+    epochs=10, 
     validation_data= val_generator,
-    callbacks=[early_stopping, tensorboard_callback, reduce_lr, model_checkpoint]  # Multiple callbacks
+    callbacks=[early_stopping, tensorboard, reduce_lr, model_checkpoint]
     )
 
 
@@ -182,7 +183,7 @@ for layer in model_tuned.layers[-10:]:
 model_tuned.compile(optimizer=Adam(learning_rate=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
 model_tuned.fit(
    train_generator, 
-   epochs=10, 
+   epochs=5, 
    validation_data=val_generator,
     callbacks=[early_stopping, tensorboard_callback, reduce_lr, model_checkpoint]
     )
@@ -201,15 +202,11 @@ print(f"Test Accuracy: {test_accuracy}")
 print("\n")
 
 # Save the trained model - Might want to include for retraining abd better control
-model_tuned.save('saved_model/my_bird_model')
+model_tuned.save('saved_model/model_1')
 
 #load the trained model for predictions
 loaded_model = load_model(checkpoint_filepath)
 
-
-is_name_similar_predictions
-
-preprocess_image(img_path)
 
 # List all files in the directory
 image_files = [f for f in os.listdir(user_test_folder) if os.path.isfile(os.path.join(user_test_folder, f))]
@@ -256,11 +253,10 @@ print(f"Total Correct Predictions: {correct_predictions} out of {total_predictio
 # regularisation - L2: BatchNormalisation
 # alternative models such as ResNet and VGG and EfficicentNet
 # Data visualisation
-# other eval matrics?
 # erroy analysis - types of images that are failing
 # ensemble models?
 # hyperparameter tuning? - Keras tuner? or optuna
 # model depth - add layers@!
+# Basian optimization - optuna
 
-# MUST SAVE model to prevent retraining - learn how to save then recall!
 
