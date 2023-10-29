@@ -157,7 +157,7 @@ tensorboard = TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, min_lr=0.00001)
 
-checkpoint_filepath = 'saved_model/model_1'
+checkpoint_filepath = 'saved_model/model_Base'
 
 model_checkpoint = ModelCheckpoint(
    filepath=checkpoint_filepath,
@@ -174,38 +174,24 @@ model_tuned.fit(
     callbacks=[early_stopping, tensorboard, reduce_lr, model_checkpoint]
     )
 
-
-# Unfreeze the top 10 layers
-for layer in model_tuned.layers[-10:]:
-   layer.trainable = True
-
-
-model_tuned.compile(optimizer=Adam(learning_rate=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
-model_tuned.fit(
-   train_generator, 
-   epochs=5, 
-   validation_data=val_generator,
-    callbacks=[early_stopping, tensorboard_callback, reduce_lr, model_checkpoint]
-    )
-
 # Using validation data
 val_loss, val_accuracy = model_tuned.evaluate(val_generator)
 # test data 
 test_loss, test_accuracy = model_tuned.evaluate(test_generator)
 
 print("\n")
-print(f"Validation Loss: {val_loss}")
-print(f"Validation Accuracy: {val_accuracy}")
+print(f"Base Validation Loss: {val_loss}")
+print(f"Base Validation Accuracy: {val_accuracy}")
 print("\n")
-print(f"Test Loss: {test_loss}")
-print(f"Test Accuracy: {test_accuracy}")
+print(f"Base Test Loss: {test_loss}")
+print(f"Base Test Accuracy: {test_accuracy}")
 print("\n")
 
 # Save the trained model - Might want to include for retraining abd better control
-model_tuned.save('saved_model/model_1')
+model_tuned.save('saved_model/model_Base')
 
 #load the trained model for predictions
-loaded_model = load_model('saved_model/model_1')
+loaded_model = load_model('saved_model/model_Base')
 
 # List all files in the directory
 image_files = [f for f in os.listdir(user_test_folder) if os.path.isfile(os.path.join(user_test_folder, f))]
